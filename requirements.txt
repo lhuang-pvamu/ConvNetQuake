@@ -4,7 +4,7 @@ librosa
 matplotlib
 #obspy
 #pytest
--e git+https://github.com/gem/oq-hazardlib.git@589fa31ddca3697e6b167082136dc0174a77bc16#egg=openquake.hazardlib
+#-e git+https://github.com/gem/oq-hazardlib.git@589fa31ddca3697e6b167082136dc0174a77bc16#egg=openquake.hazardlib
 #pandas
 #protobuf
 #scikit-image
