@@ -59,7 +59,7 @@ def filter_catalog(cat):
     cat = cat[(cat.latitude > 35.7) & (cat.latitude < 36)
               & (cat.longitude > -97.6) & (cat.longitude < -97.2)]
     # Filter event after 15th February 2014
-    begin_february = UTCDateTime(2014, 02, 15, 00, 00, 00, 500000)
+    begin_february = UTCDateTime(2014, 2, 15, 00, 00, 00, 500000)
     cat = cat[cat.utc_timestamp > begin_february]
     return cat
 
@@ -114,8 +114,8 @@ def distance_to_station(lat, long, depth):
 def main(argv):
     try:
         argv = FLAGS(argv)  # parse flags
-    except gflags.FlagsError, e:
-        print '%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS)
+    except (gflags.FlagsError, e):
+        print('%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS))
         sys.exit(1)
 
     if not os.path.exists(FLAGS.dst):
@@ -129,13 +129,13 @@ def main(argv):
     depth = cat['depth'].as_matrix()
     utc_time = cat["utc_timestamp"].as_matrix()
 
-    print "Number of events to cluster: ", len(lat)
+    print ("Number of events to cluster: ", len(lat))
 
     feats = np.hstack((lon[:, None], lat[:, None]))
-    print " + Calculating the distance matrix"
+    print (" + Calculating the distance matrix")
 
 
-    print " + Running {}".format(FLAGS.model)
+    print (" + Running {}".format(FLAGS.model))
     if FLAGS.model == 'DBSCAN':
         distance_matrix = get_distance_matrix(feats)
         clust = DBSCAN(
@@ -184,7 +184,7 @@ def main(argv):
         y = np.linspace(min(lat), max(lat),10)
         X, Y = np.meshgrid(x, y)
         XX = np.array([X.ravel(), Y.ravel()]).T
-        print  'XX', XX
+        print  ('XX', XX)
         Z = clust.score_samples(XX)
         Z = Z.reshape(X.shape)    
         plt.contourf(X,Y,Z, alpha=0.3)
@@ -219,7 +219,7 @@ def main(argv):
     # plot test data
     lat_test, lon_test = get_test_coordinates(cat)
     plt.scatter(lon_test, lat_test, marker='+', linewidth=4,c='k')
-    print 'number of events', lat_test.shape[0]
+    print ('number of events', lat_test.shape[0])
     plt.grid(False)
 
     fig_name = os.path.join(FLAGS.dst,
