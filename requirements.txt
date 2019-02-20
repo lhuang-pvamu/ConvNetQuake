@@ -1,5 +1,5 @@
 numpy
-EQcorrscan==0.1.6
+#EQcorrscan==0.1.6
 librosa
 matplotlib
 obspy
