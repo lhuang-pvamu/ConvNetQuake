@@ -65,34 +65,49 @@ class DataWriter(object):
 
 class DataReader(object):
 
-    def __init__(self, path, config, shuffle=True):
+    def __init__(self, path, config, shuffle=True, is_training=True):
         self._path = path
+        if not isinstance(self._path, (list, tuple)):
+            self._path = [self._path]
         self._shuffle = shuffle
         self._config = config
         self.win_size = config.win_size
         self.n_traces = config.n_traces
+        self.is_training = is_training
 
 
-        self._reader = tf.TFRecordReader()
+        #self._reader = tf.TFRecordReader()
 
     def read(self):
         filename_queue = self._filename_queue()
-        _, serialized_example = self._reader.read(filename_queue)
-        example = self._parse_example(serialized_example)
-        return example
+        dataset = tf.data.TFRecordDataset(filename_queue)
+        #_, serialized_example = self._reader.read(filename_queue)
+        #dataset = dataset.map(self._parse_example)
+        dataset = dataset.apply(tf.contrib.data.map_and_batch(
+            self._parse_function, self._config.batch_size,
+            num_parallel_batches=4,  # cpu cores
+            drop_remainder=True if self.is_training else False))
+        if self.is_training:
+            dataset = dataset.shuffle(1000)  # depends on sample size
+            dataset.repeat()
+        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+
+        return dataset
 
     def _filename_queue(self):
         fnames = []
-        for root, dirs, files in os.walk(self._path):
-            for f in files:
-                if f.endswith(".tfrecords"):
-                    fnames.append(os.path.join(root, f))
-        fname_q = tf.train.string_input_producer(fnames,
-                                                 shuffle=self._shuffle,
-                                                 num_epochs=self._config.n_epochs)
-        return fname_q
 
-    def _parse_example(self, serialized_example):
+        for path in self._path:
+            for root, dirs, files in os.walk(path):
+                for f in files:
+                    if f.endswith(".tfrecords"):
+                        fnames.append(os.path.join(root, f))
+        #fname_q = tf.train.string_input_producer(fnames,
+        #                                         shuffle=self._shuffle,
+        #                                         num_epochs=self._config.n_epochs)
+        return fnames
+
+    def _parse_function(self, serialized_example):
         features = tf.parse_single_example(
             serialized_example,
             features={
@@ -111,8 +126,8 @@ class DataReader(object):
 
         # Pack
         features['data'] = data
-
-        return features
+        label = tf.one_hot(tf.cast(features['cluster_id'], tf.uint8), self._config.n_clusters)
+        return data, label
 
 
 class DataPipeline(object):
@@ -133,7 +148,7 @@ class DataPipeline(object):
         if is_training:
 
             with tf.name_scope('inputs'):
-                self._reader = DataReader(dataset_path, config=config)
+                self._reader = DataReader(dataset_path, config=config, is_training=is_training)
                 samples = self._reader.read()
                 sample_input = samples['data']
                 sample_target = samples["cluster_id"]
@@ -144,6 +159,58 @@ class DataPipeline(object):
                     capacity=capacity,
                     min_after_dequeue=min_after_dequeue,
                     allow_smaller_final_batch=False)
+
+        elif not is_training:
+
+            with tf.name_scope('validation_inputs'):
+                self._reader = DataReader(dataset_path, config=config)
+                samples = self._reader.read()
+
+                sample_input = samples["data"]
+                sample_target = samples["cluster_id"]
+                start_time = samples["start_time"]
+                end_time = samples["end_time"]
+
+                self.samples, self.labels, self.start_time, self.end_time = tf.train.batch(
+                    [sample_input, sample_target, start_time, end_time],
+                    batch_size=config.batch_size,
+                    capacity=capacity,
+                    num_threads=config.n_threads,
+                    allow_smaller_final_batch=False)
+        else:
+            raise ValueError(
+                "is_training flag is not defined, set True for training and False for testing")
+
+
+class DataGenerator(object):
+
+    """Creates a dataset to stream data for training.
+
+    Attributes:
+    samples: Tensor(float). batch of input samples [batch_size, n_channels, n_points]
+    labels: Tensor(int32). Corresponding batch 0 or 1 labels, [batch_size,]
+
+    """
+
+    def __init__(self, dataset_path, config, is_training):
+
+        min_after_dequeue = 1000
+        capacity = 1000 + 3 * config.batch_size
+
+        if is_training:
+
+            with tf.name_scope('inputs'):
+                self._reader = DataReader(dataset_path, config=config)
+                self.dataset = self._reader.read()
+                #sample_input = samples['data']
+                #sample_target = samples["cluster_id"]
+
+                #self.samples, self.labels = tf.train.shuffle_batch(
+                #    [sample_input, sample_target],
+                #    batch_size=config.batch_size,
+                #    capacity=capacity,
+                #    min_after_dequeue=min_after_dequeue,
+                #    allow_smaller_final_batch=False)
 
         elif not is_training:
 

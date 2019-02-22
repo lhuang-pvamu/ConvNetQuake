@@ -22,9 +22,11 @@ import setproctitle
 import quakenet.models as models
 import quakenet.data_pipeline as dp
 import quakenet.config as config
-
+import quakenet.Keras_models as k_models
+from tensorflow.keras.callbacks import TensorBoard
 
 def main(args):
+  _EPOCHS = 5
   setproctitle.setproctitle('quakenet')
 
   tf.set_random_seed(1234)
@@ -42,32 +44,50 @@ def main(args):
   neg_path = os.path.join(args.dataset,"negative")
 
   # data pipeline for positive and negative examples
-  pos_pipeline = dp.DataPipeline(pos_path, cfg, True)
-  neg_pipeline = dp.DataPipeline(neg_path, cfg, True)
-
-  pos_samples = {
-    'data': pos_pipeline.samples,
-    'cluster_id': pos_pipeline.labels
-    }
-  neg_samples = {
-    'data': neg_pipeline.samples,
-    'cluster_id': neg_pipeline.labels
-    }
-
-  samples = {
-    "data": tf.concat([pos_samples["data"],neg_samples["data"]], 0),
-    "cluster_id" : tf.concat([pos_samples["cluster_id"],neg_samples["cluster_id"]],0)
-    }
+  #pos_pipeline = dp.DataPipeline(pos_path, cfg, True)
+  # neg_pipeline = dp.DataPipeline(neg_path, cfg, True)
+  #
+  # pos_samples = {
+  #   'data': pos_pipeline.samples,
+  #   'cluster_id': pos_pipeline.labels
+  #   }
+  # neg_samples = {
+  #   'data': neg_pipeline.samples,
+  #   'cluster_id': neg_pipeline.labels
+  #   }
+  #
+  # samples = {
+  #   "data": tf.concat([pos_samples["data"],neg_samples["data"]], 0),
+  #   "cluster_id" : tf.concat([pos_samples["cluster_id"],neg_samples["cluster_id"]],0)
+  #   }
 
   # model
-  model = models.get(args.model, samples,cfg, args.checkpoint_dir, is_training=True)
+  #model = models.get(args.model, samples,cfg, args.checkpoint_dir, is_training=True)
+
+  dataGenerator = dp.DataGenerator([pos_path,neg_path],cfg, is_training=True)
+  dataset = dataGenerator.dataset
+  MyModel = k_models.KerasConvNetQuake(dataset,cfg,args.checkpoint_dir, is_training=True)
+  MyModel.set_model()
+  model = MyModel.model
+
+  tensorboard = TensorBoard(log_dir="output/logs")
+  model.compile('adam', 'categorical_crossentropy', metrics=['acc'])
+  model.fit(
+      dataset.make_one_shot_iterator(),
+      steps_per_epoch= 100, #len(dataGenerator) // cfg.batch_size,
+      epochs=_EPOCHS,
+      validation_data=dataset.make_one_shot_iterator(),
+      validation_steps=100, #len(x_test) // _BATCH_SIZE,
+      verbose = 1,
+      callbacks=[tensorboard])
+
 
   # train loop
-  model.train(
-    args.learning_rate,
-    resume=args.resume,
-    profiling=args.profiling,
-    summary_step=10) 
+  # model.train(
+  #   args.learning_rate,
+  #   resume=args.resume,
+  #   profiling=args.profiling,
+  #   summary_step=10)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
