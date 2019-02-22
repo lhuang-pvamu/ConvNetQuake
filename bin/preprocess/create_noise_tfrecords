@@ -36,7 +36,7 @@ def main(_):
 
     stream_files = [file for file in os.listdir(args.stream_dir) if
                     fnmatch.fnmatch(file, '*.mseed')]
-    print "List of streams to anlayze", stream_files
+    print("List of streams to anlayze", stream_files)
     stream_file = stream_files[0]
 
     # Create dir to store tfrecords
@@ -45,9 +45,9 @@ def main(_):
 
     # Load stream
     stream_path = os.path.join(args.stream_dir, stream_file)
-    print "+ Loading Stream {}".format(stream_file)
+    print("+ Loading Stream {}".format(stream_file))
     stream = read(stream_path)
-    print '+ Preprocessing stream'
+    print('+ Preprocessing stream')
     stream = preprocess_stream(stream)
 
     # Write event waveforms and cluster_id in .tfrecords
@@ -80,7 +80,7 @@ def main(_):
         if idx >= num_windows:
             break  
         if idx % 10==0:
-            print idx
+            print(idx)
         cluster_id = -1
         n_traces = len(win)
         # If there is not trace skip this waveform
@@ -101,7 +101,7 @@ def main(_):
                 trace.plot(outfile=os.path.join(viz_dir, 
                                                 "event_{}.png".format(idx)))
         else:
-            print "Missing waveform for event:"  
+            print("Missing waveform for event:")
 
     # Cleanup writer
     print("Number of events written={}".format(writer._written))
