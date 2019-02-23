@@ -26,7 +26,7 @@ import quakenet.Keras_models as k_models
 from tensorflow.keras.callbacks import TensorBoard
 
 def main(args):
-  _EPOCHS = 5
+  _EPOCHS = 10
   setproctitle.setproctitle('quakenet')
 
   tf.set_random_seed(1234)
@@ -42,6 +42,7 @@ def main(args):
 
   pos_path = os.path.join(args.dataset,"positive")
   neg_path = os.path.join(args.dataset,"negative")
+  print(pos_path, neg_path)
 
   # data pipeline for positive and negative examples
   #pos_pipeline = dp.DataPipeline(pos_path, cfg, True)
@@ -69,15 +70,16 @@ def main(args):
   MyModel = k_models.KerasConvNetQuake(dataset,cfg,args.checkpoint_dir, is_training=True)
   MyModel.set_model()
   model = MyModel.model
+  opt = tf.keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
 
   tensorboard = TensorBoard(log_dir="output/logs")
-  model.compile('adam', 'categorical_crossentropy', metrics=['acc'])
+  model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
   model.fit(
       dataset.make_one_shot_iterator(),
-      steps_per_epoch= 100, #len(dataGenerator) // cfg.batch_size,
+      steps_per_epoch= 1000, #len(dataGenerator) // cfg.batch_size,
       epochs=_EPOCHS,
       validation_data=dataset.make_one_shot_iterator(),
-      validation_steps=100, #len(x_test) // _BATCH_SIZE,
+      validation_steps=1000, #len(x_test) // _BATCH_SIZE,
       verbose = 1,
       callbacks=[tensorboard])
 

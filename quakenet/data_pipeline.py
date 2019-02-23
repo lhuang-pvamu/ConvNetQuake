@@ -82,14 +82,15 @@ class DataReader(object):
         filename_queue = self._filename_queue()
         dataset = tf.data.TFRecordDataset(filename_queue)
         #_, serialized_example = self._reader.read(filename_queue)
-        #dataset = dataset.map(self._parse_example)
+        #dataset = dataset.map(self._parse_function)
+        #dataset = dataset.batch(self._config.batch_size)
         dataset = dataset.apply(tf.contrib.data.map_and_batch(
             self._parse_function, self._config.batch_size,
             num_parallel_batches=4,  # cpu cores
             drop_remainder=True if self.is_training else False))
         if self.is_training:
-            dataset = dataset.shuffle(1000)  # depends on sample size
-            dataset.repeat()
+            dataset = dataset.shuffle(100000)  # depends on sample size
+        dataset = dataset.repeat()
         dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
         return dataset
@@ -126,7 +127,8 @@ class DataReader(object):
 
         # Pack
         features['data'] = data
-        label = tf.one_hot(tf.cast(features['cluster_id'], tf.uint8), self._config.n_clusters)
+        label = tf.cast(features["cluster_id"]+1, tf.uint8)
+        #label = tf.one_hot(tf.cast(features['cluster_id'], tf.uint8), self._config.n_clusters)
         return data, label
 
 

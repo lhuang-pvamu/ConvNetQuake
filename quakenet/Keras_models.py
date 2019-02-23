@@ -31,11 +31,13 @@ class KerasConvNetQuake:
       depth = 8
       x = inputs
       for i in range(depth):
-          x = Conv1D(c, ksize, activation='relu', strides=2, padding='same')(x)
-          #x = MaxPool1D(pool_size=2)(x)
+          x = Conv1D(c, ksize, activation='relu', padding='same')(x)
+          x = MaxPool1D(pool_size=2)(x)
       x = Flatten()(x)
       x = Dense(128, activation='relu')(x)
-      x = Dropout(0.5)(x)
-      outputs = Dense(self.config.n_clusters, activation='softmax')(x)
+      #x = Dropout(0.5)(x)
+      outputs = Dense(self.config.n_clusters, activation='softmax', kernel_regularizer=tf.keras.regularizers.l2(0.01))(x)
+
+
 
       self.model = tf.keras.Model(inputs, outputs)
