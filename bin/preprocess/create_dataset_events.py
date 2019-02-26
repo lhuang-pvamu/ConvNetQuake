@@ -84,7 +84,7 @@ def main(_):
 
     stream_files = [file for file in os.listdir(FLAGS.stream_dir) if
                     fnmatch.fnmatch(file, '*.mseed')]
-    print "List of streams to anlayze", stream_files
+    print("List of streams to anlayze", stream_files)
 
     # Create dir to store tfrecords
     if not os.path.exists(FLAGS.output_dir):
@@ -95,7 +95,7 @@ def main(_):
     output_metadata = os.path.join(FLAGS.output_dir,"metadata.json")
 
     # Load Catalog
-    print "+ Loading Catalog"
+    print("+ Loading Catalog")
     cat = load_catalog(FLAGS.catalog)
     cat = filter_catalog(cat)
 
@@ -103,9 +103,9 @@ def main(_):
 
         # Load stream
         stream_path = os.path.join(FLAGS.stream_dir, stream_file)
-        print "+ Loading Stream {}".format(stream_file)
+        print("+ Loading Stream {}".format(stream_file))
         stream = read(stream_path)
-        print '+ Preprocessing stream'
+        print('+ Preprocessing stream')
         stream = preprocess_stream(stream)
 
         # Filter catalog according to the loaded stream
@@ -162,7 +162,7 @@ def main(_):
                     trace.plot(outfile=os.path.join(viz_dir,
                                                     "event_{}.png".format(event_n)))
             else:
-                print "Missing waveform for event:", UTCDateTime(event_time)
+                print("Missing waveform for event:", UTCDateTime(event_time))
 
         # Cleanup writer
         print("Number of events written={}".format(writer._written))

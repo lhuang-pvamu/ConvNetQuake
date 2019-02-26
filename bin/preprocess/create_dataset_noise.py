@@ -67,9 +67,9 @@ def main(_):
     # Load stream
     stream_path = FLAGS.stream_path
     stream_file = os.path.split(stream_path)[-1]
-    print "+ Loading Stream {}".format(stream_file)
+    print("+ Loading Stream {}".format(stream_file))
     stream = read(stream_path)
-    print '+ Preprocessing stream'
+    print( '+ Preprocessing stream')
     stream = preprocess_stream(stream)
 
     # Dictionary of nb of events per tfrecords
@@ -77,15 +77,15 @@ def main(_):
     output_metadata = os.path.join(FLAGS.output_dir,"metadata.json")
 
     # Load Catalog
-    print "+ Loading Catalog"
+    print( "+ Loading Catalog")
     cat = load_catalog(FLAGS.catalog)
     starttime = stream[0].stats.starttime.timestamp
     endtime = stream[-1].stats.endtime.timestamp
-    print "startime", UTCDateTime(starttime)
-    print "endtime", UTCDateTime(endtime)
+    print( "startime", UTCDateTime(starttime))
+    print( "endtime", UTCDateTime(endtime))
     cat = filter_catalog(cat, starttime, endtime)
-    print "First event in filtered catalog", cat.Date.values[0], cat.Time.values[0]
-    print "Last event in filtered catalog", cat.Date.values[-1], cat.Time.values[-1]
+    print( "First event in filtered catalog", cat.Date.values[0], cat.Time.values[0])
+    print( "Last event in filtered catalog", cat.Date.values[-1], cat.Time.values[-1])
     cat_event_times = cat.utc_timestamp.values
 
     # Write event waveforms and cluster_id=-1 in .tfrecords
@@ -134,8 +134,8 @@ def main(_):
             is_event = True
             assert window_start < cat.utc_timestamp.values[cat_idx]
             assert window_end > cat.utc_timestamp.values[cat_idx]
-            print "avoiding event {}, {}".format(cat.Date.values[cat_idx],
-                                                 cat.Time.values[cat_idx])
+            print( "avoiding event {}, {}".format(cat.Date.values[cat_idx],
+                                                 cat.Time.values[cat_idx]))
         except IndexError:
             # there is no event
             is_event = False
@@ -152,10 +152,10 @@ def main(_):
                     trace.plot(outfile=os.path.join(viz_dir,
                                                     "noise_{}.png".format(idx)))
         if idx % 1000  ==0 and idx != 0:
-            print "{} windows created".format(idx)
+            print( "{} windows created".format(idx))
             # Save num windows created in metadata
             metadata[output_name] = writer._written
-            print "creating a new tfrecords"
+            print( "creating a new tfrecords")
             n_tfrecords +=1
             output_name = "noise_" + stream_file.split(".mseed")[0] + \
                           "_" + str(n_tfrecords) + ".tfrecords"
