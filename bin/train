@@ -24,6 +24,7 @@ import quakenet.data_pipeline as dp
 import quakenet.config as config
 import quakenet.Keras_models as k_models
 from tensorflow.keras.callbacks import TensorBoard
+import quakenet.data_generator as dg
 
 def main(args):
   _EPOCHS = 10
@@ -65,7 +66,7 @@ def main(args):
   # model
   #model = models.get(args.model, samples,cfg, args.checkpoint_dir, is_training=True)
 
-  dataGenerator = dp.DataGenerator([pos_path,neg_path],cfg, is_training=True)
+  dataGenerator = dg.DataGenerator([pos_path,neg_path],cfg, is_training=True)
   dataset = dataGenerator.dataset
   MyModel = k_models.KerasConvNetQuake(dataset,cfg,args.checkpoint_dir, is_training=True)
   MyModel.set_model()

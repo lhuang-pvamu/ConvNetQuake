@@ -51,9 +51,9 @@ def main(args):
     while True:
         ckpt = tf.train.get_checkpoint_state(args.checkpoint_dir)
         if args.eval_interval < 0 or ckpt:
-            print 'Evaluating model'
+            print('Evaluating model')
             break
-        print  'Waiting for training job to save a checkpoint'
+        print('Waiting for training job to save a checkpoint')
         time.sleep(args.eval_interval)
 
     cfg = config.Config()
@@ -67,6 +67,7 @@ def main(args):
     cfg.add = 1
     cfg.n_clusters= args.n_clusters
     cfg.n_clusters +=1
+    coord = tf.train.Coordinator()
 
     while True:
         try:
@@ -86,15 +87,16 @@ def main(args):
                                is_training=False)
             metrics = model.validation_metrics()
             # Validation summary writer
-            summary_writer = tf.train.SummaryWriter(summary_dir, None)
+            summary_writer = tf.summary.FileWriter(summary_dir, None)
+
 
             with tf.Session() as sess:
-                coord = tf.train.Coordinator()
+
                 tf.initialize_local_variables().run()
                 threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
                 model.load(sess,args.step)
-                print  'Evaluating at step {}'.format(sess.run(model.global_step))
+                print('Evaluating at step {}'.format(sess.run(model.global_step)))
 
                 step = tf.train.global_step(sess, model.global_step)
                 mean_metrics = {}
@@ -121,8 +123,8 @@ def main(args):
                         # Save times of false preds
                         if args.save_false and \
                                 batch_pred_label != batch_true_label:
-                            print "---False prediction---"
-                            print UTCDateTime(starttime), UTCDateTime(endtime)
+                            print("---False prediction---")
+                            print(UTCDateTime(starttime), UTCDateTime(endtime))
                             false_origintime.append((starttime[0]+endtime[0])/2)
                             false_end.append(UTCDateTime(endtime))
                             false_start.append(UTCDateTime(starttime))
@@ -133,15 +135,15 @@ def main(args):
                         n += cfg.batch_size
 
                         mess = model.validation_metrics_message(metrics_)
-                        print '{:03d} | '.format(n)+mess
+                        print('{:03d} | '.format(n)+mess)
 
                     except KeyboardInterrupt:
-                        print 'stopping evaluation'
+                        print('stopping evaluation')
                         break
 
                     except tf.errors.OutOfRangeError:
-                        print 'Evaluation completed ({} epochs).'.format(cfg.n_epochs)
-                        print "{} windows seen".format(n)
+                        print('Evaluation completed ({} epochs).'.format(cfg.n_epochs))
+                        print("{} windows seen".format(n))
                         break
 
                 if n > 0:
@@ -155,18 +157,18 @@ def main(args):
                 summary_writer.flush()
 
                 mess = model.validation_metrics_message(mean_metrics)
-                print 'Average | '+mess
+                print('Average | '+mess)
 
                 if args.eval_interval < 0:
-                  print 'End of evaluation'
+                  print('End of evaluation')
                   break
 
             tf.reset_default_graph()
-            print 'Sleeping for {}s'.format(args.eval_interval)
+            print('Sleeping for {}s'.format(args.eval_interval))
             time.sleep(args.eval_interval)
 
         finally:
-            print 'joining data threads'
+            print('joining data threads')
             coord.request_stop()
 
 
@@ -183,8 +185,8 @@ def main(args):
     true_labels = true_labels[1::]
     # np.save("output/pred_labels_noise.npy",pred_labels)
     # np.save("output/true_labels_noise.npy",true_labels)
-    print "---Confusion Matrix----"
-    print confusion_matrix(true_labels,pred_labels)
+    print("---Confusion Matrix----")
+    print(confusion_matrix(true_labels,pred_labels))
 
     coord.join(threads)
 

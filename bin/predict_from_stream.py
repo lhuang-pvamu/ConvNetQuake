@@ -84,9 +84,9 @@ def main(args):
     # Load stream
     stream_path = args.stream_path
     stream_file = os.path.split(stream_path)[-1]
-    print "+ Loading Stream {}".format(stream_file)
+    print("+ Loading Stream {}".format(stream_file))
     stream = read(stream_path)
-    print '+ Preprocessing stream'
+    print('+ Preprocessing stream')
     stream = preprocess_stream(stream)
 
     # # TODO: change and look at all streams
@@ -101,7 +101,7 @@ def main(args):
     # Create catalog name in which the events are stored
     catalog_name = os.path.split(stream_file)[-1].split(".mseed")[0] + ".csv"
     output_catalog = os.path.join(args.output,catalog_name)
-    print 'Catalog created to store events', output_catalog
+    print('Catalog created to store events', output_catalog)
 
     # Dictonary to store info on detected events
     events_dic ={"start_time": [],
@@ -137,8 +137,8 @@ def main(args):
     with tf.Session() as sess:
 
         model.load(sess, args.step)
-        print 'Predicting using model at step {}'.format(
-                sess.run(model.global_step))
+        print('Predicting using model at step {}'.format(
+                sess.run(model.global_step)))
 
         step = tf.train.global_step(sess, model.global_step)
 
@@ -181,7 +181,7 @@ def main(args):
 
 
                 if idx % 1000 ==0:
-                    print "Analyzing {} records".format(win[0].stats.starttime)
+                    print("Analyzing {} records".format(win[0].stats.starttime))
 
                 if args.plot and is_event:
                 # if args.plot:
@@ -197,21 +197,21 @@ def main(args):
                             format="SAC")
 
                 if idx >= max_windows:
-                    print "stopped after {} windows".format(max_windows)
-                    print "found {} events".format(n_events)
+                    print("stopped after {} windows".format(max_windows))
+                    print("found {} events".format(n_events))
                     break
 
         except KeyboardInterrupt:
-            print 'Interrupted at time {}.'.format(win[0].stats.starttime)
-            print "processed {} windows, found {} events".format(idx+1,n_events)
-            print "Run time: ", time.time() - time_start
+            print('Interrupted at time {}.'.format(win[0].stats.starttime))
+            print("processed {} windows, found {} events".format(idx+1,n_events))
+            print("Run time: ", time.time() - time_start)
 
     # Dump dictionary into csv file
     #TODO
     df = pd.DataFrame.from_dict(events_dic)
     df.to_csv(output_catalog)
 
-    print "Run time: ", time.time() - time_start
+    print("Run time: ", time.time() - time_start)
 
 if __name__ == "__main__":
 
