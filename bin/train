@@ -25,9 +25,10 @@ import quakenet.config as config
 import quakenet.Keras_models as k_models
 from tensorflow.keras.callbacks import TensorBoard
 import quakenet.data_generator as dg
+from tensorflow.keras.models import model_from_json
 
 def main(args):
-  _EPOCHS = 10
+  _EPOCHS = 5
   setproctitle.setproctitle('quakenet')
 
   tf.set_random_seed(1234)
@@ -68,22 +69,45 @@ def main(args):
 
   dataGenerator = dg.DataGenerator([pos_path,neg_path],cfg, is_training=True)
   dataset = dataGenerator.dataset
-  MyModel = k_models.KerasConvNetQuake(dataset,cfg,args.checkpoint_dir, is_training=True)
-  MyModel.set_model()
-  model = MyModel.model
-  opt = tf.keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
+
+  if_reuse = True
+
+  if if_reuse and os.path.exists("models/model.json"):
+    # load json and create model
+    json_file = open("models/model.json", 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model_json)
+    # load weights into new model
+    model.load_weights("models/model.h5")
+    print("Loaded model from disk")
+  else:
+    MyModel = k_models.KerasConvNetQuake(cfg,args.checkpoint_dir, is_training=True)
+    MyModel.set_model()
+    model = MyModel.model
+    print("Create an empty model")
+    #opt = tf.keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
 
   tensorboard = TensorBoard(log_dir="output/logs")
-  model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+  model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
   model.fit(
       dataset.make_one_shot_iterator(),
-      steps_per_epoch= 1000, #len(dataGenerator) // cfg.batch_size,
+      steps_per_epoch= 10000, #len(dataGenerator) // cfg.batch_size,
       epochs=_EPOCHS,
       validation_data=dataset.make_one_shot_iterator(),
       validation_steps=1000, #len(x_test) // _BATCH_SIZE,
       verbose = 1,
       callbacks=[tensorboard])
 
+  if not os.path.exists("models"):
+      os.makedirs("models")
+  # serialize model to JSON
+  model_json = model.to_json()
+  with open("models/model.json", "w") as json_file:
+      json_file.write(model_json)
+  # serialize weights to HDF5
+  model.save_weights("models/model.h5")
+  print("Saved model to disk")
 
   # train loop
   # model.train(

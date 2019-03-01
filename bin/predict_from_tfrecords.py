@@ -80,7 +80,7 @@ def main(args):
 
     # Create catalog name in which the events are stored
     output_catalog = os.path.join(args.output,'catalog_detection.csv')
-    print 'Catalog created to store events', output_catalog
+    print('Catalog created to store events', output_catalog)
 
 
     # Run ConvNetQuake
@@ -90,8 +90,8 @@ def main(args):
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
         model.load(sess,args.step)
-        print 'Predicting using model at step {}'.format(
-                sess.run(model.global_step))
+        print('Predicting using model at step {}'.format(
+                sess.run(model.global_step)))
 
         step = tf.train.global_step(sess, model.global_step)
 
@@ -120,7 +120,7 @@ def main(args):
 
                 idx +=1
                 if idx % 1000 ==0:
-                    print "processed {} windows".format(idx)
+                    print("processed {} windows".format(idx))
 
                 if is_event:
                     events_dic["start_time"].append(UTCDateTime(start_time))
@@ -131,21 +131,21 @@ def main(args):
                     events_dic["clusters_prob"].append(list(clusters_prob))
 
                 if idx >= max_windows:
-                    print "stopped after {} windows".format(max_windows)
-                    print "found {} events".format(n_events)
+                    print("stopped after {} windows".format(max_windows))
+                    print("found {} events".format(n_events))
                     break
 
             except KeyboardInterrupt:
-                print "processed {} windows, found {} events".format(idx+1,n_events)
-                print "Run time: ", time.time() - time_start
+                print("processed {} windows, found {} events".format(idx+1,n_events))
+                print("Run time: ", time.time() - time_start)
 
             except tf.errors.OutOfRangeError:
-                print 'Evaluation completed ({} epochs).'.format(cfg.n_epochs)
+                print('Evaluation completed ({} epochs).'.format(cfg.n_epochs))
                 break
 
-        print 'joining data threads'
+        print('joining data threads')
         m, s = divmod(time.time() - time_start, 60)
-        print "Prediction took {} min {} seconds".format(m,s)
+        print("Prediction took {} min {} seconds".format(m,s))
         coord.request_stop()
         coord.join(threads)
 

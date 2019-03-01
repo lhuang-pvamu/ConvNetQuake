@@ -37,7 +37,7 @@ class DataGenerator(object):
     def read(self):
         filename_queue = self._filename_queue()
         dataset = tf.data.TFRecordDataset(filename_queue)
-        dataset = dataset.apply(tf.contrib.data.map_and_batch(
+        dataset = dataset.apply(tf.data.experimental.map_and_batch(
             self._parse_function, self.config.batch_size,
             num_parallel_batches=4,  # cpu cores
             drop_remainder=True if self.is_training else False))
