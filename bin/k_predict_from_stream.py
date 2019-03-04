@@ -37,7 +37,7 @@ import quakenet.Keras_models as models
 import quakenet.config as config
 from quakenet.data_io import load_stream
 from tensorflow.keras.models import model_from_json
-import keras
+
 
 # def fetch_streams_list(datadir):
 #     """Get the list of streams to analyze"""

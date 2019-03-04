@@ -68,7 +68,7 @@ def main(args):
   #model = models.get(args.model, samples,cfg, args.checkpoint_dir, is_training=True)
 
   dataGenerator = dg.DataGenerator([pos_path,neg_path],cfg, is_training=True)
-  dataset = dataGenerator.dataset
+  dataset = dataGenerator.read().dataset
 
   if_reuse = True
 

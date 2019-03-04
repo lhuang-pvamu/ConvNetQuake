@@ -53,9 +53,9 @@ def main(args):
     # Load stream
     stream_path = args.stream_path
     stream_file = os.path.split(stream_path)[-1]
-    print "+ Loading Stream {}".format(stream_file)
+    print("+ Loading Stream {}".format(stream_file))
     stream = read(stream_path)
-    print '+ Preprocessing stream'
+    print('+ Preprocessing stream')
     stream = preprocess_stream(stream)
 
     # Dictionary of nb of events per tfrecords
@@ -79,8 +79,8 @@ def main(args):
     if args.max_windows is None:
         total_time = stream[-1].stats.endtime - stream[0].stats.starttime
         max_windows = (total_time - args.window_size) / args.window_step
-        print "total time {}, wind_size {}, win_step {}".format(
-              total_time, args.window_size, args.window_step)
+        print("total time {}, wind_size {}, win_step {}".format(
+              total_time, args.window_size, args.window_step))
     else:
         max_windows = args.max_windows
 
@@ -117,7 +117,7 @@ def main(args):
                                                 "window_{}.png".format(idx)))
 
         # if idx % 1000  ==0 and idx != 0:
-        #     print "{} windows created".format(idx)
+        #     print("{} windows created".format(idx))
 
         if idx == max_windows:
             break
@@ -135,8 +135,8 @@ def main(args):
     output_times = os.path.join(args.output_dir,"catalog_times.csv")
     df.to_csv(output_times)
 
-    print "Last window analyzed ends on", win[0].stats.endtime
-    print "Time to create tfrecords: {}s".format(time.time()-start_time)
+    print("Last window analyzed ends on", win[0].stats.endtime)
+    print("Time to create tfrecords: {}s".format(time.time()-start_time))
 
 
 

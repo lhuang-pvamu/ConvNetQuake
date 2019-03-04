@@ -26,16 +26,33 @@ class DataGenerator(object):
         capacity = 1000 + 3 * config.batch_size
         self.is_training = is_training
         self.config = config
-        self._path = dataset_path
+        self._path = dataset_path if isinstance(input, list) else [dataset_path]
         self.win_size = config.win_size
         self.n_traces = config.n_traces
 
-        self.dataset = self.read()
 
+    def getFeatures(self):
+        filename_queue = self._filename_queue()
+        dataset = tf.data.TFRecordDataset(filename_queue)
+        dataset = dataset.map(self._parse_features)
+        return dataset
 
+    def _parse_features(self, serialized_example):
+        features = tf.parse_single_example(
+            serialized_example,
+            features={
+                'window_size': tf.FixedLenFeature([], tf.int64),
+                'n_traces': tf.FixedLenFeature([], tf.int64),
+                'data': tf.FixedLenFeature([], tf.string),
+                'cluster_id': tf.FixedLenFeature([], tf.int64),
+                'start_time': tf.FixedLenFeature([],tf.int64),
+                'end_time': tf.FixedLenFeature([], tf.int64)})
+
+        return features
 
     def read(self):
         filename_queue = self._filename_queue()
+        print(filename_queue)
         dataset = tf.data.TFRecordDataset(filename_queue)
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
             self._parse_function, self.config.batch_size,
