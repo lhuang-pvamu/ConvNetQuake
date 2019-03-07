@@ -44,10 +44,10 @@ FLAGS = flags.FLAGS
 
 
 def distance_to_station(lat, long, depth):
-    # station GPS coordinates
+    # station GPS coordinates of GS OK029 station -  Liberty Lake, Oklahoma, USA
     lat0 = 35.796570
     long0 = -97.454860
-    depth0 = -0.333
+    depth0 = -0.333  # elevation: 333m
     # return distance of the event to the station
     return distance(long, lat, depth, long0, lat0, depth0)
 

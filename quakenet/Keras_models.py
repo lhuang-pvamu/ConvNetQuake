@@ -31,8 +31,8 @@ class KerasConvNetQuake:
       depth = 8
       x = inputs
       for i in range(depth):
-          x = Conv1D(c, ksize, activation='relu', padding='same', strides=1)(x)
-          x = MaxPool1D(pool_size=2)(x)
+          x = Conv1D(c, ksize, activation='relu', padding='same', strides=2)(x)
+          #x = MaxPool1D(pool_size=2)(x)
       x = Flatten()(x)
       x = Dense(128, activation='relu')(x)
       x = Dropout(0.5)(x)
